@@ -1,3 +1,4 @@
+import { FORK_APP_NAME } from "../../lib/forkBranding";
 import { WorkspaceNoTabs } from "./WorkspaceNoTabs";
 import { WORKSPACE_TAB_LABELS, useEnabledNavigationTabs } from "./navigation-tabs";
 import { WorkspaceExtraTab } from "./WorkspaceExtraTab";
@@ -63,7 +64,7 @@ function WorkspaceRootTitle(props: {
   return (
     <View style={{ width: maxWidth, minHeight: 32, justifyContent: "center" }}>
       <WorkspaceConnectionTitle
-        brand={<CompactBrandTitle accessibilityLabel={`T3 Code, ${tabTitle}`} fit />}
+        brand={<CompactBrandTitle accessibilityLabel={`${FORK_APP_NAME}, ${tabTitle}`} fit />}
         maxWidth={maxWidth}
         onPress={props.onOpenEnvironments}
       />
@@ -164,7 +165,7 @@ function WorkspaceRootContent() {
         ) : (
           <AppBar
             embedded
-            title="T3 Code"
+            title={FORK_APP_NAME}
             titleContent={renderHeaderTitle()}
             actions={[
               ...(state.selectedTab === "threads" || state.selectedTab === "pullRequests"

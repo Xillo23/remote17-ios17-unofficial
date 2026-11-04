@@ -177,9 +177,8 @@ function CrashReportsSetting() {
         />
       </SettingsSection>
       <Text className="px-2 text-sm leading-normal text-foreground-muted">
-        When the app crashes or hits an error, it sends the error message, the stack trace, the app
-        version, and the device model and OS version to the T3 Code team. Each launch also sends
-        startup timings. Reports carry a random ID for this install.
+        This unofficial build has no crash-report server configured, so reports are not sent
+        anywhere: neither to the original T3 Code team nor to the maintainer of this fork.
       </Text>
     </View>
   );

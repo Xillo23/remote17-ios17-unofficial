@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { AppState } from "react-native";
 import { scheduleOnUI } from "react-native-worklets";
 
@@ -11,6 +12,8 @@ function collectUiRuntimeGarbage() {
 export function installUiRuntimeMemoryWarningGc(): () => void {
   const subscription = AppState.addEventListener("memoryWarning", () => {
     scheduleOnUI(collectUiRuntimeGarbage);
+    // Fork: decoded images dominate memory on 2 GB devices; drop them before iOS kills the app.
+    void Image.clearMemoryCache().catch(() => undefined);
   });
   return () => subscription.remove();
 }

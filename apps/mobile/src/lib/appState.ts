@@ -1,6 +1,8 @@
 import { useSyncExternalStore } from "react";
 import { AccessibilityInfo, AppState } from "react-native";
 
+import { isPerformanceModeEnabled, subscribePerformanceMode } from "./performanceMode";
+
 type Listener = () => void;
 
 export function subscribeAppState(onChange: Listener): () => void {
@@ -79,9 +81,18 @@ export function subscribeReduceMotion(onChange: Listener): () => void {
 }
 
 export function readReduceMotionEnabled(): boolean {
-  return reduceMotionEnabled ?? true;
+  return isPerformanceModeEnabled() || (reduceMotionEnabled ?? true);
+}
+
+function subscribeMotionPreferences(onChange: Listener): () => void {
+  const unsubscribeReduceMotion = subscribeReduceMotion(onChange);
+  const unsubscribePerformance = subscribePerformanceMode(onChange);
+  return () => {
+    unsubscribeReduceMotion();
+    unsubscribePerformance();
+  };
 }
 
 export function useReduceMotionEnabled(): boolean {
-  return useSyncExternalStore(subscribeReduceMotion, readReduceMotionEnabled);
+  return useSyncExternalStore(subscribeMotionPreferences, readReduceMotionEnabled);
 }

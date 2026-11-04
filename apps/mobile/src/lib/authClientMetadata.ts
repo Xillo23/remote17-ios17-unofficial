@@ -7,7 +7,8 @@ export function authClientMetadata(appVersion?: string): AuthClientPresentationM
   const deviceModel = Device.modelName?.trim();
 
   return {
-    label: "T3 Code Mobile",
+    // Fork: identify honestly to the server as an unofficial client.
+    label: "Remote17 (unofficial iOS client)",
     deviceType:
       Device.deviceType === Device.DeviceType.TABLET
         ? "tablet"

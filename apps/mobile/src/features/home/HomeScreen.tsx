@@ -1,3 +1,4 @@
+import { isPerformanceModeEnabled, performanceDrawDistance } from "../../lib/performanceMode";
 import { usePaneRole } from "../../components/ui/Pane";
 import { ScreenContent } from "../../components/ui/ScreenContent";
 import { useActiveNewTask } from "../../state/active-new-task";
@@ -804,7 +805,10 @@ export function HomeScreen(props: HomeScreenProps) {
                 getItemType={(item) => item.type}
                 itemsAreEqual={threadListV2ListItemsAreEqual}
                 estimatedItemSize={ESTIMATED_THREAD_LIST_V2_ROW_HEIGHT}
-                drawDistance={THREAD_LIST_V2_DRAW_DISTANCE}
+                drawDistance={performanceDrawDistance(
+                  THREAD_LIST_V2_DRAW_DISTANCE,
+                  isPerformanceModeEnabled(),
+                )}
                 recycleItems
                 extraData={v2ExtraData}
                 ListHeaderComponent={v2ListHeader}

@@ -3,10 +3,12 @@ import { Platform, StyleSheet, View, type ColorValue } from "react-native";
 
 import { useAppearancePreferences } from "../../features/settings/appearance/AppearancePreferencesProvider";
 import { themeColorWithAlpha } from "../../lib/mobileTheme";
+import { usePerformanceMode } from "../../lib/performanceMode";
 
 export function GlassBackdrop(props: { readonly fallbackColor?: ColorValue }) {
   const { themeAppearance, themeVariables } = useAppearancePreferences();
-  const supportsBlur = Platform.OS === "ios";
+  // Live blur is one of the costliest effects on A10-class GPUs; use an opaque fill instead.
+  const supportsBlur = Platform.OS === "ios" && !usePerformanceMode();
   const color = props.fallbackColor ?? themeVariables["--color-glass-fallback"];
   const colorStyle = {
     backgroundColor:

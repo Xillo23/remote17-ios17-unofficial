@@ -18,6 +18,7 @@ import {
 import { SettingsRow } from "./components/SettingsRow";
 import { SettingsSection } from "./components/SettingsSection";
 import { SettingsScreen } from "./components/SettingsScreen";
+import { FORK_APP_NAME, FORK_REPOSITORY_URL, UPSTREAM_REPOSITORY_URL } from "../../lib/forkBranding";
 
 export function SettingsAboutRouteScreen() {
   const insets = useSafeAreaInsets();
@@ -31,6 +32,9 @@ export function SettingsAboutRouteScreen() {
         contentContainerClassName="gap-6 px-5 pt-4"
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 18) + 18 }}
       >
+        <Text className="px-2 text-sm leading-normal text-foreground-muted">
+          {`${FORK_APP_NAME} is an UNOFFICIAL fork of the open-source T3 Code mobile app (MIT license), adapted for iOS 17. It is not affiliated with, endorsed or supported by T3 Tools, Inc. or Ping Labs. Provided "as is", without warranty. Source and issues: ${FORK_REPOSITORY_URL}. Original project: ${UPSTREAM_REPOSITORY_URL}.`}
+        </Text>
         <AppSettingsSection />
       </ScrollView>
     </SettingsScreen>

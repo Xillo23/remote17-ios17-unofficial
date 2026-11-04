@@ -9,12 +9,18 @@ const repoEnv = loadRepoEnv();
 Object.assign(process.env, repoEnv);
 
 const APP_VARIANT = resolveAppVariant(repoEnv.APP_VARIANT);
-const isIosPersonalTeamBuild = repoEnv.T3CODE_IOS_PERSONAL_TEAM === "1";
+// Fork (Remote17, unofficial iOS 17 build): on by default. Uses its own name, icon and bundle id,
+// no T3 cloud identifiers, no OTA updates, and the reduced-capability (Personal Team) native setup.
+const isForkBuild = repoEnv.REMOTE17_FORK_BUILD !== "0";
+const FORK_APP_NAME = "Remote17";
+const isIosPersonalTeamBuild = isForkBuild || repoEnv.T3CODE_IOS_PERSONAL_TEAM === "1";
 const runtimeVersionPolicy =
   process.env.MOBILE_VERSION_POLICY ??
-  (APP_VARIANT === "development" ? "appVersion" : "fingerprint");
+  (APP_VARIANT === "development" || isForkBuild ? "appVersion" : "fingerprint");
 
-const personalTeamBundleIdentifier = repoEnv.T3CODE_IOS_PERSONAL_TEAM_BUNDLE_ID?.trim();
+const personalTeamBundleIdentifier = isForkBuild
+  ? (repoEnv.REMOTE17_BUNDLE_ID?.trim() || "io.github.xillo23.remote17")
+  : repoEnv.T3CODE_IOS_PERSONAL_TEAM_BUNDLE_ID?.trim();
 const IOS_BUNDLE_IDENTIFIER_PATTERN = /^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/;
 
 // Compiled into the native project. Without a relay, Observe's native side could dispatch to
@@ -75,6 +81,13 @@ const RELEASE_ASSETS = {
   androidNotificationColor: "#FFFFFF",
 } as const;
 
+const FORK_ASSETS = {
+  ...RELEASE_ASSETS,
+  appIcon: "./assets/fork/app-icon-1024.png",
+  iosIcon: "./assets/fork/app-icon-1024.png",
+  splashIcon: "./assets/fork/mark-transparent-1024.png",
+} as const;
+
 const VARIANT_CONFIG = {
   development: {
     appName: "T3 Code Dev",
@@ -115,7 +128,16 @@ function resolveAppVariant(value: string | undefined): AppVariant {
   }
 }
 
-const variant = VARIANT_CONFIG[APP_VARIANT];
+const variant = isForkBuild
+  ? {
+      ...VARIANT_CONFIG[APP_VARIANT],
+      appName: FORK_APP_NAME,
+      scheme: "remote17",
+      androidPackage: "io.github.xillo23.remote17",
+      assets: FORK_ASSETS,
+    }
+  : VARIANT_CONFIG[APP_VARIANT];
+const appDisplayName = variant.appName;
 // Copied thread links open the app. app.t3.codes/.well-known lists every variant's identifiers.
 const HOSTED_APP_HOST = "app.t3.codes";
 const iosBundleIdentifier = isIosPersonalTeamBuild
@@ -227,7 +249,7 @@ const sharingPlugin: NonNullable<ExpoConfig["plugins"]>[number] = [
 
 const config: ExpoConfig = {
   name: variant.appName,
-  slug: "t3-code",
+  slug: isForkBuild ? "remote17" : "t3-code",
   platforms: ["ios", "android"],
   scheme: variant.scheme,
   version: repoEnv.T3CODE_MOBILE_VERSION ?? "2.2.0",
@@ -239,8 +261,9 @@ const config: ExpoConfig = {
   icon: variant.assets.appIcon,
   userInterfaceStyle: "automatic",
   updates: {
-    enabled: repoEnv.T3CODE_MOBILE_UPDATES_ENABLED !== "0",
-    url: "https://u.expo.dev/d763fcb8-d37c-41ea-a773-b54a0ab4a454",
+    // The fork never downloads over-the-air bundles (they would come from the official project).
+    enabled: !isForkBuild && repoEnv.T3CODE_MOBILE_UPDATES_ENABLED !== "0",
+    ...(isForkBuild ? {} : { url: "https://u.expo.dev/d763fcb8-d37c-41ea-a773-b54a0ab4a454" }),
     checkAutomatically: "ON_LOAD",
     fallbackToCacheTimeout: 0,
   },
@@ -250,12 +273,15 @@ const config: ExpoConfig = {
     requireFullScreen: process.env.T3_SHOWCASE_CAPTURE_BUILD === "1",
     bundleIdentifier: iosBundleIdentifier,
     // Avoid Personal Team fallback: it cannot sign App Groups, Apple sign-in or push entitlements.
-    appleTeamId: "ARK85ZXQ4Z",
-    associatedDomains: [
-      `applinks:${variant.relyingParty}`,
-      `webcredentials:${variant.relyingParty}`,
-      `applinks:${HOSTED_APP_HOST}`,
-    ],
+    // The fork has no Apple team and no claim on the official domains.
+    ...(isForkBuild ? {} : { appleTeamId: "ARK85ZXQ4Z" }),
+    associatedDomains: isForkBuild
+      ? []
+      : [
+          `applinks:${variant.relyingParty}`,
+          `webcredentials:${variant.relyingParty}`,
+          `applinks:${HOSTED_APP_HOST}`,
+        ],
     entitlements: {
       "keychain-access-groups": [`$(AppIdentifierPrefix)${variant.iosBundleIdentifier}`],
     },
@@ -269,8 +295,8 @@ const config: ExpoConfig = {
         NSAllowsArbitraryLoads: true,
       },
       NSLocalNetworkUsageDescription:
-        "Allow T3 Code to connect to T3 Code servers on your local network or tailnet.",
-      NSPhotoLibraryAddUsageDescription: "Allow T3 Code to save images to your photo library.",
+        `Allow ${appDisplayName} to connect to T3 Code-compatible servers on your local network or tailnet.`,
+      NSPhotoLibraryAddUsageDescription: `Allow ${appDisplayName} to save images to your photo library.`,
       // System picture in picture needs background audio to start and survive outside the app.
       UIBackgroundModes: ["audio"],
       ITSAppUsesNonExemptEncryption: false,
@@ -377,7 +403,7 @@ const config: ExpoConfig = {
     [
       "expo-audio",
       {
-        microphonePermission: "Allow T3 Code to use your microphone for voice input.",
+        microphonePermission: `Allow ${appDisplayName} to use your microphone for voice input.`,
         recordAudioAndroid: true,
         enableBackgroundPlayback: false,
         enableBackgroundRecording: false,
@@ -386,7 +412,7 @@ const config: ExpoConfig = {
     [
       "expo-camera",
       {
-        cameraPermission: "Allow T3 Code to access your camera so you can scan pairing QR codes.",
+        cameraPermission: `Allow ${appDisplayName} to access your camera so you can scan pairing QR codes.`,
         microphonePermission: false,
         barcodeScannerEnabled: true,
         recordAudioAndroid: false,
@@ -397,7 +423,7 @@ const config: ExpoConfig = {
       {
         photosPermission: false,
         // `false` makes this plugin add RECORD_AUDIO to blockedPermissions, breaking Android dictation.
-        microphonePermission: "Allow T3 Code to use your microphone for voice input.",
+        microphonePermission: `Allow ${appDisplayName} to use your microphone for voice input.`,
       },
     ],
     [
@@ -431,7 +457,8 @@ const config: ExpoConfig = {
           ].join("\n"),
         },
         ios: {
-          deploymentTarget: "18.0",
+          // Fork: iOS 17.0 so older devices such as the iPad 6 (A10) can install it.
+          deploymentTarget: isForkBuild ? "17.0" : "18.0",
           // AppCheckCore 11.3+ includes Swift and needs module maps for these Objective-C dependencies.
           extraPods: [
             { name: "GoogleUtilities", modular_headers: true },
@@ -475,11 +502,14 @@ const config: ExpoConfig = {
       tracesToken: repoEnv.EXPO_PUBLIC_OTLP_TRACES_TOKEN ?? null,
     },
     eas: {
-      projectId: "d763fcb8-d37c-41ea-a773-b54a0ab4a454",
+      ...(isForkBuild ? {} : { projectId: "d763fcb8-d37c-41ea-a773-b54a0ab4a454" }),
       observe: { endpointUrl: observeEndpointUrl },
     },
+    fork: isForkBuild
+      ? { name: FORK_APP_NAME, upstream: "https://github.com/pingdotgg/t3code", official: false }
+      : null,
   },
-  owner: "pingdotgg",
+  ...(isForkBuild ? {} : { owner: "pingdotgg" }),
   experiments: {
     // Metro only runs babel-plugin-react-compiler when this is set; see src/reactCompilerCoverage.test.ts.
     reactCompiler: true,

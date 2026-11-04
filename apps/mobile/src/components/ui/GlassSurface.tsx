@@ -14,6 +14,7 @@ import { MOBILE_SHAPE } from "../../lib/designTokens";
 import { cn } from "../../lib/cn";
 import { useAppearancePreferences } from "../../features/settings/appearance/AppearancePreferencesProvider";
 import { GlassBackdrop } from "./GlassBackdrop";
+import { usePerformanceMode } from "../../lib/performanceMode";
 
 // Explicit mappings keep the native glassEffectStyle enum out of style-array conversion.
 const ThemedGlassView = withUniwind(GlassView, {
@@ -49,7 +50,9 @@ export function GlassSurface({
   const { themeAppearance } = useAppearancePreferences();
   const isDarkMode = themeAppearance === "dark";
   const supportsGlass = Platform.OS === "ios" && isGlassEffectAPIAvailable();
-  const hasShadow = chrome !== "none" && Platform.OS !== "android";
+  const performanceMode = usePerformanceMode();
+  // Large unpathed shadows force offscreen passes; skip them in performance mode.
+  const hasShadow = chrome !== "none" && Platform.OS !== "android" && !performanceMode;
   const surfaceStyle: ViewStyle = {
     borderRadius: MOBILE_SHAPE.glass,
     overflow: "hidden",

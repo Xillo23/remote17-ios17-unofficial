@@ -1,3 +1,4 @@
+import { isPerformanceModeEnabled, performanceDrawDistance } from "../../lib/performanceMode";
 import { usePaneRole } from "../../components/ui/Pane";
 import { Button } from "../../components/ui/Button";
 import {
@@ -290,7 +291,7 @@ export function PullRequestsScreen(
         keyExtractor={pullRequestKey}
         itemsAreEqual={pullRequestListRowsAreEqual}
         estimatedItemSize={88}
-        drawDistance={1_000}
+        drawDistance={performanceDrawDistance(1_000, isPerformanceModeEnabled())}
         maintainVisibleContentPosition={result.continued ? maintainVisiblePosition : false}
         onEndReached={() => void result.loadMore()}
         onEndReachedThreshold={0.5}

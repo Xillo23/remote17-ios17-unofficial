@@ -1,3 +1,4 @@
+import { isPerformanceModeEnabled, performanceDrawDistance } from "../../lib/performanceMode";
 import { Button } from "../../components/ui/Button";
 import * as Dialog from "../../components/ui/Dialog";
 import { useOpenPullRequest } from "../../native/useOpenPullRequest";
@@ -3895,7 +3896,7 @@ export const ThreadFeed = memo(function ThreadFeed({
             getFixedItemSize={getFixedItemSize}
             // Native layout transitions retain stale row positions during sync, even at duration zero.
             onItemSizeChanged={handleItemSizeChanged}
-            drawDistance={500}
+            drawDistance={performanceDrawDistance(500, isPerformanceModeEnabled())}
             keyboardShouldPersistTaps="always"
             keyboardDismissMode="none"
             keyboardLiftBehavior={props.sendingWithKeyboard ? "persistent" : "whenAtEnd"}

@@ -55,10 +55,10 @@ export function ThreadListToolbar(props: ThreadListToolbarProps) {
 
   return (
     <AppBar
-      title="T3 Code"
+      title="Remote17"
       titleContent={
         <WorkspaceBrandTitle
-          accessibilityLabel="T3 Code, Threads"
+          accessibilityLabel="Remote17, Threads"
           onOpenEnvironments={props.onOpenEnvironments}
         />
       }

@@ -54,6 +54,8 @@ import { scopeThreadRef } from "@t3tools/client-runtime/environment";
 import { environmentThreadDetails, threadEnvironment } from "../../state/threads";
 import { useAtomCommand } from "../../state/use-atom-command";
 import { toolActivityFaviconUrl } from "@t3tools/shared/favicon";
+
+const FORK_REMOTE_FAVICONS = false;
 import { isJavaScriptReplTool } from "@t3tools/shared/toolActivity";
 import { useMarkdownCodeHighlight } from "./markdownCodeHighlightState";
 
@@ -1486,7 +1488,9 @@ function ToolActivityIconView(props: {
     return <WorkLogIcon icon={props.fallback} color={props.fallbackColor} />;
   }
   if (props.icon._tag === "website") {
-    const source = toolActivityFaviconUrl(props.icon, props.themeAppearance, 32);
+    // Fork privacy: never fetch site icons from third parties (Google's favicon service or the
+    // visited site); the generic icon reveals nothing about what the agent browsed.
+    const source = FORK_REMOTE_FAVICONS ? toolActivityFaviconUrl(props.icon, props.themeAppearance, 32) : null;
     return source ? (
       <ToolActivityImage
         key={source}

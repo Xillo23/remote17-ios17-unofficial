@@ -1,0 +1,197 @@
+name: Remote17 - unsigned iOS 17 IPA
+
+# Fork workflow (unofficial). Builds the mobile app for iOS 17.0+ without code signing and
+# uploads the .ipa files as workflow artifacts. No secrets are used or needed.
+on:
+  workflow_dispatch:
+    inputs:
+      configuration:
+        description: Xcode build configuration
+        required: true
+        default: Release
+        type: choice
+        options:
+          - Release
+          - Debug
+
+permissions:
+  contents: read
+
+concurrency:
+  group: remote17-ios17-ipa-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_VARIANT: production
+  REMOTE17_FORK_BUILD: "1"
+  EXPO_NO_GIT_STATUS: "1"
+  EXPO_NO_TELEMETRY: "1"
+  CI: "1"
+  NODE_OPTIONS: --max-old-space-size=6144
+
+jobs:
+  ipa:
+    name: Build unsigned IPA (iOS 17.0+)
+    runs-on: macos-latest
+    timeout-minutes: 150
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            /*
+            !/.repos/
+          sparse-checkout-cone-mode: false
+
+      - name: Select newest Xcode
+        run: |
+          xcode="$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
+          echo "Using $xcode"
+          sudo xcode-select -s "$xcode/Contents/Developer"
+          xcodebuild -version
+          sw_vers
+
+      - name: Setup Vite+ and install mobile dependencies
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          node-version-file: package.json
+          cache: true
+          run-install: |
+            args:
+              - --filter=@t3tools/mobile...
+              - --filter=@t3tools/scripts...
+
+      - name: Expose pnpm
+        run: |
+          pnpm_version="$(node --print "require('./package.json').packageManager.split('@').pop()")"
+          vp_pnpm_bin="$HOME/.vite-plus/package_manager/pnpm/$pnpm_version/pnpm/bin"
+          echo "$vp_pnpm_bin" >> "$GITHUB_PATH"
+          "$vp_pnpm_bin/pnpm" --version
+
+      - name: Make sure no T3 cloud configuration is present
+        # The published build must not embed the official T3 Connect/Clerk identifiers.
+        run: |
+          rm -f .env .env.local
+          node -e "
+            const env = process.env;
+            for (const k of ['T3CODE_CLERK_PUBLISHABLE_KEY','T3CODE_RELAY_URL','EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY']) {
+              if (env[k]) { console.error(k + ' must not be set'); process.exit(1); }
+            }"
+
+      - name: Resolved Expo config
+        working-directory: apps/mobile
+        run: |
+          pnpm exec expo config --type public --json > "$RUNNER_TEMP/expo-config.json"
+          node -e "
+            const c = require(process.argv[1]);
+            const out = { name: c.name, slug: c.slug, bundle: c.ios?.bundleIdentifier, team: c.ios?.appleTeamId ?? null,
+              domains: c.ios?.associatedDomains, updates: c.updates?.enabled, clerk: c.extra?.clerk, relay: c.extra?.relay };
+            console.log(JSON.stringify(out, null, 2));
+            if (c.extra?.clerk?.publishableKey || c.extra?.relay?.url) { console.error('Cloud config leaked into build'); process.exit(1); }
+          " "$RUNNER_TEMP/expo-config.json"
+
+      - name: Expo prebuild (iOS)
+        working-directory: apps/mobile
+        run: pnpm exec expo prebuild --platform ios --clean
+
+      - name: Check deployment targets
+        working-directory: apps/mobile/ios
+        run: |
+          grep -ho 'IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*' *.xcodeproj/project.pbxproj Pods/Pods.xcodeproj/project.pbxproj | sort | uniq -c
+          if grep -ho 'IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*' *.xcodeproj/project.pbxproj Pods/Pods.xcodeproj/project.pbxproj \
+            | awk '{split($3,v,"."); if (v[1] > 17) bad=1} END {exit bad}'; then
+            echo "All targets are iOS 17.0 or lower."
+          else
+            echo "::error::A target requires iOS newer than 17.0"; exit 1
+          fi
+
+      - name: xcodebuild (no code signing)
+        working-directory: apps/mobile/ios
+        run: |
+          set -o pipefail
+          workspace="$(ls -d *.xcworkspace | head -1)"
+          scheme="${workspace%.xcworkspace}"
+          echo "Workspace: $workspace, scheme: $scheme"
+          xcodebuild \
+            -workspace "$workspace" \
+            -scheme "$scheme" \
+            -configuration "${{ inputs.configuration }}" \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/dd" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            build 2>&1 | tee "$RUNNER_TEMP/xcodebuild.log" | grep -E "error:|warning: .*only available|\*\* BUILD" || true
+          grep -q "\*\* BUILD SUCCEEDED \*\*" "$RUNNER_TEMP/xcodebuild.log"
+
+      - name: Package IPA files
+        run: |
+          set -euo pipefail
+          products="$RUNNER_TEMP/dd/Build/Products/${{ inputs.configuration }}-iphoneos"
+          app="$(ls -d "$products"/*.app | head -1)"
+          name="$(basename "$app" .app)"
+          bin="$app/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Info.plist")"
+          echo "App: $app"
+          echo "MinimumOSVersion: $(/usr/libexec/PlistBuddy -c 'Print :MinimumOSVersion' "$app/Info.plist")"
+          echo "Bundle id: $(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Info.plist")"
+          # Every Mach-O inside the bundle must load on iOS 17.0.
+          bad=0
+          while IFS= read -r -d '' f; do
+            if file "$f" | grep -q "Mach-O"; then
+              minos="$(vtool -show-build "$f" 2>/dev/null | awk '/minos/ {print $2; exit}')"
+              major="${minos%%.*}"
+              if [ -n "$major" ] && [ "$major" -gt 17 ]; then echo "::error::$f needs iOS $minos"; bad=1; fi
+            fi
+          done < <(find "$app" -type f -print0)
+          [ "$bad" = 0 ]
+
+          mkdir -p dist/unsigned/Payload dist/adhoc/Payload
+          cp -R "$app" dist/unsigned/Payload/
+          cp -R "$app" dist/adhoc/Payload/
+
+          # Variant 1: completely unsigned (CODE_SIGNING_ALLOWED=NO).
+          (cd dist/unsigned && zip -qry "../${name}-iOS17-unsigned.ipa" Payload)
+
+          # Variant 2: same binary with an ad-hoc signature (Apple's codesign, identity "-") and
+          # minimal entitlements, which jailbreak installers such as AppSync Unified handle better.
+          adhoc_app="dist/adhoc/Payload/$(basename "$app")"
+          bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$adhoc_app/Info.plist")"
+          cat > "$RUNNER_TEMP/ent.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>application-identifier</key><string>REMOTE17AA.${bundle_id}</string>
+            <key>keychain-access-groups</key><array><string>REMOTE17AA.${bundle_id}</string></array>
+            <key>get-task-allow</key><false/>
+          </dict></plist>
+          PLIST
+          sed -i '' 's/^          //' "$RUNNER_TEMP/ent.plist"
+          find "$adhoc_app" -depth \( -name "*.framework" -o -name "*.dylib" -o -name "*.appex" \) -print0 \
+            | xargs -0 -I{} codesign --force --sign - --timestamp=none "{}"
+          codesign --force --sign - --timestamp=none --entitlements "$RUNNER_TEMP/ent.plist" "$adhoc_app"
+          codesign -dv "$adhoc_app" 2>&1 | head -5
+          (cd dist/adhoc && zip -qry "../${name}-iOS17-adhoc-signed.ipa" Payload)
+
+          (cd dist && shasum -a 256 *.ipa | tee SHA256SUMS.txt)
+          ls -la dist
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: Remote17-iOS17-ipa
+          path: |
+            dist/*.ipa
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: xcodebuild-log
+          path: ${{ runner.temp }}/xcodebuild.log
+          if-no-files-found: ignore
+          retention-days: 14
