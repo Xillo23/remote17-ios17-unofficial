@@ -83,6 +83,24 @@ original configuration):
 - Added `CHANGES.md`, `THIRD-PARTY.md`, `LEGAL-CHECK.md`.
 - `LICENSE` and all copyright notices are unchanged.
 
+## Repository cleanup
+
+Removed files that only serve the original project's own development, AI-agent and CI setup, and
+are not needed to build this fork:
+
+- AI agent and editor configuration: `.agents/`, `.claude/`, `.cursor/`, `AGENTS.md`, `CLAUDE.md`,
+  `.vscode/`, `.devcontainer/`, `.macroscope/`, `.coderabbit.config.ts`, `t3.json`.
+- Vendored read-only reference repositories: `.repos/` (about 225 MB, never used by the build).
+- Upstream maintainer tooling: `.task-cache.json`, `.vercelignore`, `CONTRIBUTING.md`.
+- Upstream GitHub setup: all workflows except `remote17-ios17-ipa.yml`, `.github/actions`,
+  `.github/scripts`, issue and pull request templates (they disabled blank issues and pointed to the
+  original repository), `SECURITY.md`, triage files.
+
+Kept because the build or the workspace needs them: `infra/`, `evals/`, `.vite-hooks/`,
+`.pnpmfile.cjs`, `knip.jsonc`, `.gitattributes`, `.gitignore`. The original project's code,
+license and copyright notices are untouched. Syncing with upstream may report delete/modify
+conflicts for these paths; resolve them by keeping the deletion.
+
 ## Not changed
 
 - No changes to authentication, pairing, permissions, the WebSocket protocol, the server, or
