@@ -1,153 +1,179 @@
-# T3 Code
+<p align="center">
+  <img src="apps/mobile/assets/fork/app-icon-1024.png" width="112" alt="Remote17 icon (generic, original artwork)">
+</p>
 
-T3 Code is an "agent harness control surface". It enables control of the agents on your machine with a best-in-class mobile app ([iOS](https://apps.apple.com/us/app/t3-code-remote-claude-more/id6787819824), [Android](https://play.google.com/store/apps/details?id=com.t3tools.t3code)), [web app](https://app.t3.codes) and [Electron-based desktop app](https://t3.codes).
-
-Works with your subscriptions on Claude Code, Codex, Cursor, Grok Build, OpenCode, Google Antigravity, and fx. If they're set up on your computer, T3 Code can control them.
-
-## "Wait, what are you selling me?"
-
-Nothing. We built T3 Code because we wanted the best possible development experience with agents. We were inspired by existing solutions like the Codex desktop app, Conductor, Claude Desktop and Cursor Glass, but none met our bar.
-
-We wanted something performant, remote-ready, and truly open. If we ever go the wrong direction, we want you to have everything you need to fork and build the editor that you want.
-
-## Installation
+<h1 align="center">Remote17</h1>
+<p align="center"><b>Unofficial iOS 17 build of the open-source T3 Code mobile client</b><br>
+Tuned for older iPhones and iPads, such as the iPad 6 (A10, 2 GB RAM)</p>
 
 > [!WARNING]
-> T3 Code currently supports Codex, Claude, Cursor, Grok Build, OpenCode, Antigravity, and fx. Install and authenticate at least one provider before use:
+> **This is an UNOFFICIAL fork.** It is **not affiliated with, endorsed, sponsored or supported by
+> T3 Tools, Inc., Ping Labs, or the T3 Code maintainers.** "T3 Code" is used here only to describe
+> the original project: <https://github.com/pingdotgg/t3code>.
 >
-> - Codex: install [Codex CLI](https://developers.openai.com/codex/cli) and run `codex login`
-> - Claude: install [Claude Code](https://claude.com/product/claude-code) and run `claude auth login`
-> - Cursor: install [Cursor CLI](https://cursor.com/cli) and run `agent login`
-> - Grok Build: install [Grok Build CLI](https://x.ai/cli) and run `grok login`
-> - OpenCode: install [OpenCode](https://opencode.ai) and run `opencode auth login`
-> - Antigravity: enable it in Settings, then use **Install Antigravity** and **Sign in with Google**. No CLI is required.
-> - fx: install [fx](https://fx.sh) and run `fx login` on the machine running the T3 Code server ([setup guide](./docs/user/providers-fx.md))
+> The software is provided **"AS IS", without warranty of any kind** (see [LICENSE](LICENSE)).
+> **iOS 17 compatibility is not guaranteed.** Installing apps outside the App Store requires a
+> jailbroken device; doing so is entirely **at your own risk** (data loss, instability, voided
+> support). For the official app, use the App Store version published by its developers.
+>
+> Please do not report problems with this fork to the official T3 Code project. Use this
+> repository's [Issues](../../issues) instead.
 
-### Command line
+---
 
-```bash
-curl -fsSL https://t3.codes/install.sh | sh
-```
+## What is it?
 
-On Windows, in PowerShell:
+T3 Code is an MIT-licensed GUI for coding agents (Codex, Claude Code, Cursor, OpenCode, ...).
+Its desktop app or `npx t3` server runs on your computer, and the mobile app lets you follow and
+control that work remotely.
 
-```powershell
-irm https://t3.codes/install.ps1 | iex
-```
+The official mobile app requires **iOS 18**. This fork rebuilds the same open-source mobile client
+so it can be installed on **iOS 17.0+**, under its own name (**Remote17**) and with a generic icon,
+plus a few changes for old, low-memory hardware:
 
-Then run `t3` to start the server and open the local web app. `t3 service install` keeps it running in the background, `t3 update` moves to a newer release, and `t3 --help` has the full reference.
+| Change | Why |
+|---|---|
+| Deployment target lowered from iOS 18.0 to **17.0** | Install on iPad 6 / iPhone 8 / iPhone X class devices stuck on iOS 17 |
+| **Performance mode** (automatic on iOS < 18 or ≤ 3 GB RAM) | No live blur, no large shadows, reduced motion, fewer list rows rendered ahead, image cache freed on memory warnings |
+| No widgets, share extension, push or Sign in with Apple | These need an Apple developer team and app groups; leaving them out also saves memory |
+| No over-the-air updates, no T3 cloud keys, no crash reporting server | The build only talks to the T3 Code server you pair it with (see [Privacy](#privacy)) |
+| No third-party favicon lookups | Website icons in agent activity are not fetched from Google or other sites |
 
-To try it once without installing, run `npx t3@latest` instead.
+The full list is in [CHANGES.md](CHANGES.md).
 
-### Desktop app
+## Status
 
-Install the latest version of the desktop app from [GitHub Releases](https://github.com/pingdotgg/t3code/releases), or from your favorite package registry:
+| | |
+|---|---|
+| Source changes | Done, type-checked; Expo prebuild verified (all targets iOS 17.0) |
+| CI workflow (`.github/workflows/remote17-ios17-ipa.yml`) | Ready; **not run yet** because GitHub Actions is currently disabled on the maintainer's account |
+| Downloadable IPA / Release | **None published yet.** A Release is created only after a build succeeds and the [legal check](LEGAL-CHECK.md) has no open blockers |
+| Tested on a real iOS 17 device | **Not yet** |
 
-#### Windows (`winget`)
+## Requirements
 
-```bash
-winget install T3Tools.T3Code
-```
+- An iPhone or iPad on **iOS 17.0 – 17.x** that is **jailbroken** (for example an iPad 6, which
+  checkm8-based jailbreaks support), with:
+  - **AppSync Unified** (lets the system install IPAs that are not signed by Apple)
+  - **Filza File Manager** (opens and installs the `.ipa`)
+- A computer running **T3 Code** (desktop app, or `npx t3` / `t3 serve`) that the device can reach
+  on your **local network or Tailscale**.
 
-#### Windows (`scoop`)
+## Install the IPA (jailbreak + AppSync Unified + Filza)
 
-```bash
-scoop install extras/t3code
-```
+1. In your package manager (Sileo / Zebra), add the AppSync Unified repository
+   `https://cydia.akemi.ai/` and install **AppSync Unified**. Install **Filza File Manager**
+   from its usual repository. Respring when asked.
+2. Download `Remote17-iOS17-adhoc-signed.ipa` from this repository's
+   [Releases](../../releases) (once one exists) in Safari. Check its SHA-256 against
+   `SHA256SUMS.txt` if you want to be sure the file is intact.
+3. Open the Files app → **Downloads**, long-press the IPA → **Share** → **Filza**, or browse to it
+   inside Filza (`/var/mobile/Containers/Shared/AppGroup/.../File Provider Storage/Downloads`).
+4. Tap the IPA in Filza → **Install**. Wait for "Done", then return to the home screen.
+5. If the ad-hoc signed variant does not install or launch, try `Remote17-iOS17-unsigned.ipa`
+   the same way.
 
-#### macOS (Homebrew)
+To uninstall, long-press the Remote17 icon → **Remove App**, like any other app.
 
-```bash
-brew install --cask t3-code
-```
+## Connect to your computer
 
-#### Debian, Ubuntu (`.deb`)
+Remote17 connects directly to your own T3 Code server; no account is needed.
 
-Download the `.deb` from [GitHub Releases](https://github.com/pingdotgg/t3code/releases), then:
+1. On the computer: in the T3 Code desktop app open **Settings → Sharing & access**, enable
+   **Network access**, and create a pairing link. With the CLI, run `t3 up --lan` (or
+   `t3 serve --lan`) and then `t3 pair`.
+2. On the iPad/iPhone: open Remote17 → **Add environment**, then scan the QR code or paste the
+   pairing URL. Use an address the device can reach (LAN IP or Tailscale address, not
+   `127.0.0.1`).
 
-```bash
-sudo apt install ./T3-Code-*.deb
-```
+Details: [Remote access](docs/user/remote-access.md) in the original documentation.
 
-#### Arch Linux (AUR)
+## Performance mode
 
-Stable:
+**Settings → Appearance → Performance.** "Automatic" turns it on when the device runs an iOS
+version older than 18 or has 3 GB of RAM or less. You can force it on or off. It also makes the
+app report "Reduce Motion" to its own animations, so everything stays responsive on an A10.
 
-```bash
-yay -S t3code-bin
-```
+## Known limitations
 
-Nightly:
+- **T3 account sign-in and T3 Connect are not available.** They depend on the official cloud
+  service (Clerk sign-in and the T3 relay), which only accepts the official apps' identifiers.
+  This fork does not imitate those identifiers and does not try to get around that; use LAN or
+  Tailscale pairing instead.
+- No home-screen widgets, no share-sheet extension, no push notifications or Live Activities.
+- Features that need iOS 26 (Apple on-device voice transcription, "liquid glass") are not
+  available on iOS 17; the app falls back to the iOS 17 look.
+- Built with the current Xcode SDK for a minimum of iOS 17.0. Compile-time availability checks
+  cover Swift code, but some native libraries could still behave differently on iOS 17.
+  Please report crashes in [Issues](../../issues) with the device model and iOS version.
+- Newer T3 Code servers may require a newer client; the app will say so when that happens.
 
-```bash
-yay -S t3code-nightly-bin
-```
+## Privacy
 
-The AUR packaging is maintained in this repository under [`packaging/aur`](./packaging/aur).
+Remote17 does not include analytics, advertising, or crash-reporting services, and it does not
+send anything to the fork maintainer. It connects to:
 
-#### Nix (nixpkgs)
+| Destination | When | Why |
+|---|---|---|
+| **Your T3 Code server** (the address you pair) | Always, while in use | The app's whole purpose: threads, files, terminals, diffs |
+| Sites linked from content you open | Only when you open them | Images or links inside messages and pull requests are loaded from their original hosts (for example GitHub) |
+| Apple services | As the OS decides | Standard iOS behaviour (for example network checks), not app-specific |
 
-```bash
-nix profile add github:NixOS/nixpkgs/nixos-unstable#t3code
-```
+Not used in this build: T3 Connect relay (`relay.t3.codes`), Clerk sign-in (`clerk.t3.codes`),
+Expo updates (`u.expo.dev`), Expo push, Axiom tracing, PostHog, Google favicon service. The CI
+workflow fails the build if T3 cloud identifiers end up in the configuration.
 
-The package is maintained in [nixpkgs](https://github.com/NixOS/nixpkgs/tree/nixos-unstable/pkgs/by-name/t3/t3code)
-and includes the desktop app (`t3code-desktop`) and the `t3` command.
-See [Nix installation](./docs/user/install.md#nix-nixpkgs) for NixOS configuration and updates.
+Your T3 Code server has its own telemetry settings; see the original
+[telemetry documentation](docs/user/telemetry.md).
 
-## Some notes
+## Build it yourself
 
-We are very very early in this project. Expect bugs.
-
-We are (mostly) not accepting contributions yet. Small fixes may be considered. Big features will not be.
-
-## Documentation
-
-Full docs live in [docs/](./docs). There's no docs site yet.
-
-- [FAQ](./docs/user/faq.md)
-- [Install and first run](./docs/user/install.md)
-- [Permission modes](./docs/user/permission-modes.md)
-- [Keyboard shortcuts](./docs/user/keybindings.md)
-- [Project settings](./docs/user/project-settings.md)
-- [Appearance preferences](./docs/user/appearance.md)
-- [Remote access from a phone or another machine](./docs/user/remote-access.md)
-- [Connect Claude Code, Codex, ChatGPT and other agents over MCP](./docs/user/outside-agents.md)
-- [Keeping app and server in sync](./docs/user/updating.md)
-- [Source control integrations](./docs/user/source-control.md)
-- Multiple accounts: [Codex](./docs/user/providers-codex.md) · [Claude](./docs/user/providers-claude.md)
-- [Run T3 Code as a background service](./docs/user/background-service.md)
-
-Building from source? Start at [docs/internals/overview.md](./docs/internals/overview.md).
-
-## If you REALLY want to contribute still.... read this first
-
-### Install `vp`
-
-T3 Code uses Vite+ so you'll need to install the global `vp` command-line tool.
-
-#### macOS / Linux
-
-```bash
-curl -fsSL https://vite.plus | bash
-```
-
-#### Windows
-
-```bash
-irm https://vite.plus/ps1 | iex
-```
-
-Checkout their getting started guide for more information: https://viteplus.dev/guide/
-
-### Install dependencies
+The IPA is built by GitHub Actions on `macos-latest` with no signing and no secrets:
 
 ```bash
-vp i
+gh workflow run remote17-ios17-ipa.yml --ref ios17-legacy -f configuration=Release
 ```
 
-Read [CONTRIBUTING.md](./CONTRIBUTING.md) before reporting a bug or opening a PR.
+It runs `expo prebuild`, checks that every target is iOS 17.0 or lower, builds with
+`xcodebuild … CODE_SIGNING_ALLOWED=NO`, checks every binary's minimum iOS version, and uploads two
+`.ipa` files (unsigned and ad-hoc signed) plus `SHA256SUMS.txt` as artifacts.
 
-Have a feature request? Start an [Ideas discussion](https://github.com/pingdotgg/t3code/discussions/categories/ideas).
+On a Mac, the same steps by hand:
 
-Need support? Join the [Discord](https://discord.gg/jn4EGJjrvv).
+```bash
+pnpm install --filter=@t3tools/mobile... --filter=@t3tools/scripts...
+cd apps/mobile
+APP_VARIANT=production npx expo prebuild --platform ios --clean
+# then build the generated ios/Remote17.xcworkspace with CODE_SIGNING_ALLOWED=NO
+```
+
+`REMOTE17_FORK_BUILD=0` restores the original configuration.
+
+## Licenses and credits
+
+- Original work: **T3 Code**, © 2026 T3 Tools Inc., MIT License — kept unchanged in
+  [LICENSE](LICENSE). All original copyright notices are preserved.
+- Fork changes: MIT License, same terms.
+- Third-party components: see [THIRD-PARTY.md](THIRD-PARTY.md) and the in-app
+  **Settings → About → Open source licenses**.
+- The Remote17 icon is original artwork made for this fork. "T3", "T3 Code" and related logos are
+  trademarks of their respective owners and are not used as this project's identity.
+- Legal review notes: [LEGAL-CHECK.md](LEGAL-CHECK.md) (not legal advice).
+
+## Removal on request
+
+If the owners of the original project, of any trademark, or of any service involved disagree with
+this fork, **the maintainer will delete it or make it private**. Please open an
+[Issue](../../issues) in this repository (or mention `Xillo23` on GitHub); requests are handled
+promptly and without argument.
+
+---
+
+### In breve (IT)
+
+Fork **non ufficiale** del client mobile open source di T3 Code, adattato a **iOS 17** e ottimizzato
+per dispositivi vecchi come l'iPad 6. Non affiliato né approvato da T3 Tools / Ping Labs, fornito
+"così com'è" senza garanzie, compatibilità con iOS 17 non garantita, uso a proprio rischio.
+Installazione: jailbreak + AppSync Unified + Filza (vedi sopra). Collegamento al PC tramite rete
+locale o Tailscale; login con account T3 e T3 Connect non disponibili. Per richieste di rimozione
+apri una Issue: il fork verrà cancellato o reso privato.

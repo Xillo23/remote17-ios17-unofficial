@@ -283,7 +283,9 @@ const config: ExpoConfig = {
           `applinks:${HOSTED_APP_HOST}`,
         ],
     entitlements: {
-      "keychain-access-groups": [`$(AppIdentifierPrefix)${variant.iosBundleIdentifier}`],
+      "keychain-access-groups": [
+        `$(AppIdentifierPrefix)${isForkBuild ? iosBundleIdentifier : variant.iosBundleIdentifier}`,
+      ],
     },
     infoPlist: {
       UISupportedInterfaceOrientations: [
@@ -344,6 +346,8 @@ const config: ExpoConfig = {
     favicon: variant.assets.appIcon,
   },
   plugins: [
+    // Mods run in reverse, so listing it first strips push/App Group entitlements last.
+    ...(isForkBuild ? ["./plugins/withoutIosPersonalTeamCapabilities.cjs"] : []),
     "expo-asset",
     "react-native-pdf-jsi",
     [
