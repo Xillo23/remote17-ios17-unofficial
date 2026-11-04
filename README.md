@@ -167,13 +167,3 @@ this fork, **the maintainer will delete it or make it private**. Please open an
 [Issue](../../issues) in this repository (or mention `Xillo23` on GitHub); requests are handled
 promptly and without argument.
 
----
-
-### In breve (IT)
-
-Fork **non ufficiale** del client mobile open source di T3 Code, adattato a **iOS 17** e ottimizzato
-per dispositivi vecchi come l'iPad 6. Non affiliato né approvato da T3 Tools / Ping Labs, fornito
-"così com'è" senza garanzie, compatibilità con iOS 17 non garantita, uso a proprio rischio.
-Installazione: jailbreak + AppSync Unified + Filza (vedi sopra). Collegamento al PC tramite rete
-locale o Tailscale; login con account T3 e T3 Connect non disponibili. Per richieste di rimozione
-apri una Issue: il fork verrà cancellato o reso privato.
