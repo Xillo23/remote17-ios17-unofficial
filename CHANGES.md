@@ -75,6 +75,8 @@ original configuration):
   Expo prebuild, deployment-target check, `xcodebuild` with `CODE_SIGNING_ALLOWED=NO`, per-binary
   `minos` check, unsigned and ad-hoc signed `.ipa` artifacts with SHA-256 sums. Fails if T3 cloud
   identifiers are present in the config. Uses no secrets.
+- New `codemagic.yaml`: the same unsigned build on Codemagic (free macOS minutes), for when
+  GitHub Actions is not available. Uses no secrets.
 - The original project's workflows are disabled in this fork's GitHub settings (files unchanged).
 
 ## Documentation

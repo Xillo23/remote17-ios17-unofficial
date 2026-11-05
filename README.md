@@ -138,6 +138,10 @@ It runs `expo prebuild`, checks that every target is iOS 17.0 or lower, builds w
 `xcodebuild … CODE_SIGNING_ALLOWED=NO`, checks every binary's minimum iOS version, and uploads two
 `.ipa` files (unsigned and ad-hoc signed) plus `SHA256SUMS.txt` as artifacts.
 
+Without GitHub Actions, the same build runs on [Codemagic](https://codemagic.io) (free tier):
+sign in with GitHub, add this repository, and start the `remote17-ios17-ipa` workflow from
+[`codemagic.yaml`](codemagic.yaml). The `.ipa` files appear under the build's artifacts.
+
 On a Mac, the same steps by hand:
 
 ```bash
