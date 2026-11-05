@@ -19,7 +19,7 @@ import { THREAD_SIDEBAR_ROW_LAYOUT } from "./threadListAnimations";
 import type { MenuAction } from "@react-native-menu/menu";
 import { useAtomValue } from "@effect/atom-react";
 import { useMemo, useRef, useState } from "react";
-import type { LayoutChangeEvent, TextInputInstance } from "react-native";
+import type { TextInputInstance } from "react-native";
 import { Platform, StyleSheet, TextInput, View } from "react-native";
 import { GestureDetector, useNativeGesture } from "react-native-gesture-handler";
 import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable";
@@ -95,7 +95,6 @@ type SidebarListItem =
       readonly state?: "loading" | "failed";
     };
 
-const SIDEBAR_STICKY_HEADER_HEIGHT = 106;
 
 interface ThreadNavigationSidebarProps {
   readonly width: number;
@@ -412,13 +411,6 @@ function ThreadNavigationSidebarPane(
     }
   };
 
-  const [measuredHeaderHeight, setMeasuredHeaderHeight] = useState<number | null>(null);
-  const stickyHeaderHeight = measuredHeaderHeight ?? insets.top + SIDEBAR_STICKY_HEADER_HEIGHT;
-  const topListInset = stickyHeaderHeight + 6;
-  const handleStickyHeaderLayout = (event: LayoutChangeEvent) => {
-    const nextHeight = event.nativeEvent.layout.height;
-    setMeasuredHeaderHeight((current) => (current === nextHeight ? current : nextHeight));
-  };
   const handleSwipeableWillOpen = (methods: SwipeableMethods) => {
     if (openSwipeableRef.current !== methods) {
       openSwipeableRef.current?.close();
@@ -778,79 +770,12 @@ function ThreadNavigationSidebarPane(
       // Android fills its pane, which animates its width while a hinge resizes the split.
       style={Platform.OS === "android" ? undefined : { width: props.width }}
     >
-      <View
-        className="flex-1"
-        style={
-          Platform.OS === "android"
-            ? {
-                marginHorizontal: 4,
-                paddingBottom: insets.bottom,
-                backgroundColor: drawerColor,
-                borderTopLeftRadius: 28,
-                borderTopRightRadius: 28,
-                overflow: "hidden",
-              }
-            : { paddingBottom: insets.bottom }
-        }
-      >
-        {Platform.OS === "android" && listItems.length === 0 ? (
-          <View className="flex-1 items-center justify-center">{listEmpty}</View>
-        ) : (
-          <SwipeableScrollGateProvider enabled={swipeEnabled}>
-            <GestureDetector gesture={sidebarScrollGesture}>
-              {/* oxlint-disable-next-line t3code/require-registered-list-scroll -- Only the non-native workspace layout (Android and the fallback) renders this sidebar, which has no native header to register with. */}
-              <AnimatedLegendList
-                itemLayoutAnimation={THREAD_SIDEBAR_ROW_LAYOUT}
-                data={listItems}
-                drawDistance={500}
-                estimatedItemSize={64}
-                extraData={listExtraData}
-                getItemType={(item) => item.type}
-                itemsAreEqual={sidebarItemsAreEqual}
-                keyExtractor={(item) => item.key}
-                renderItem={renderListItem}
-                contentContainerStyle={[
-                  styles.threadListContent,
-                  Platform.OS === "android" ? { paddingHorizontal: 0 } : null,
-                  {
-                    paddingBottom:
-                      Platform.OS === "android"
-                        ? floatingTabsEnabled
-                          ? FLOATING_TABS.bottom + FLOATING_TABS.edge + fabSize
-                          : Math.max(insets.bottom, 16) + fabClearance - insets.bottom
-                        : 16 + insets.bottom,
-                    paddingTop: Platform.OS === "android" ? 6 : topListInset,
-                  },
-                ]}
-                keyboardDismissMode="on-drag"
-                keyboardShouldPersistTaps="handled"
-                {...scrollGateHandlers}
-                recycleItems
-                scrollEventThrottle={16}
-                showsVerticalScrollIndicator={false}
-                style={styles.threadList}
-                ListEmptyComponent={listEmpty}
-              />
-            </GestureDetector>
-          </SwipeableScrollGateProvider>
-        )}
-      </View>
-
-      {Platform.OS === "android" ? (
-        <ThreadListToolbar
-          searchQuery={props.searchQuery}
-          onSearchQueryChange={props.onSearchQueryChange}
-          filterActions={listMenuActions}
-          filterCustomized={filterCustomized}
-          onFilterSelect={(event) => handleListMenuAction({ nativeEvent: { event } })}
-          onOpenEnvironments={props.onOpenEnvironmentSettings}
-          onRequestVisibility={props.onRequestVisibility}
-        />
-      ) : (
+      {/* Remote17: the header sits above the list in normal flow, so no measured overlay inset
+          can hide the first rows (iOS 17 has no native sidebar header to scroll under). */}
+      {Platform.OS === "android" ? null : (
         <View
-          className="absolute inset-x-0 top-0 z-[4] bg-drawer"
+          className="z-[4] bg-drawer"
           collapsable={false}
-          onLayout={handleStickyHeaderLayout}
           pointerEvents="auto"
           style={{ paddingTop: insets.top }}
         >
@@ -899,6 +824,75 @@ function ThreadNavigationSidebarPane(
           </View>
         </View>
       )}
+      <View
+        className="flex-1"
+        style={
+          Platform.OS === "android"
+            ? {
+                marginHorizontal: 4,
+                paddingBottom: insets.bottom,
+                backgroundColor: drawerColor,
+                borderTopLeftRadius: 28,
+                borderTopRightRadius: 28,
+                overflow: "hidden",
+              }
+            : { paddingBottom: insets.bottom }
+        }
+      >
+        {Platform.OS === "android" && listItems.length === 0 ? (
+          <View className="flex-1 items-center justify-center">{listEmpty}</View>
+        ) : (
+          <SwipeableScrollGateProvider enabled={swipeEnabled}>
+            <GestureDetector gesture={sidebarScrollGesture}>
+              {/* oxlint-disable-next-line t3code/require-registered-list-scroll -- Only the non-native workspace layout (Android and the fallback) renders this sidebar, which has no native header to register with. */}
+              <AnimatedLegendList
+                itemLayoutAnimation={THREAD_SIDEBAR_ROW_LAYOUT}
+                data={listItems}
+                drawDistance={500}
+                estimatedItemSize={64}
+                extraData={listExtraData}
+                getItemType={(item) => item.type}
+                itemsAreEqual={sidebarItemsAreEqual}
+                keyExtractor={(item) => item.key}
+                renderItem={renderListItem}
+                contentContainerStyle={[
+                  styles.threadListContent,
+                  Platform.OS === "android" ? { paddingHorizontal: 0 } : null,
+                  {
+                    paddingBottom:
+                      Platform.OS === "android"
+                        ? floatingTabsEnabled
+                          ? FLOATING_TABS.bottom + FLOATING_TABS.edge + fabSize
+                          : Math.max(insets.bottom, 16) + fabClearance - insets.bottom
+                        : 16 + insets.bottom,
+                    paddingTop: 6,
+                  },
+                ]}
+                keyboardDismissMode="on-drag"
+                keyboardShouldPersistTaps="handled"
+                {...scrollGateHandlers}
+                recycleItems
+                scrollEventThrottle={16}
+                showsVerticalScrollIndicator={false}
+                style={styles.threadList}
+                ListEmptyComponent={listEmpty}
+              />
+            </GestureDetector>
+          </SwipeableScrollGateProvider>
+        )}
+      </View>
+
+      {Platform.OS === "android" ? (
+        <ThreadListToolbar
+          searchQuery={props.searchQuery}
+          onSearchQueryChange={props.onSearchQueryChange}
+          filterActions={listMenuActions}
+          filterCustomized={filterCustomized}
+          onFilterSelect={(event) => handleListMenuAction({ nativeEvent: { event } })}
+          onOpenEnvironments={props.onOpenEnvironmentSettings}
+          onRequestVisibility={props.onRequestVisibility}
+        />
+      ) : null}
       <ThreadUndoNotice visible={props.visible} />
     </View>
   );

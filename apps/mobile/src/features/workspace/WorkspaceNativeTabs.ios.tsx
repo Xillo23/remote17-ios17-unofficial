@@ -28,6 +28,7 @@ import { useDeviceType } from "../../native/native-layout-metrics";
 import { WorkspaceSidebarTabs } from "./WorkspaceSidebarTabs";
 import { useAdaptiveWorkspaceLayout } from "../layout/AdaptiveWorkspaceLayout";
 import { useSelectWorkspaceTab } from "./useSelectWorkspaceTab";
+import { NATIVE_WORKSPACE_COLUMNS_SUPPORTED } from "../../native/NativeWorkspaceColumns";
 
 const PULL_REQUEST_ICON = require("../../../assets/icons/pull-request.png");
 
@@ -96,6 +97,10 @@ export function WorkspaceNativeTabs(props: {
   const { width } = useWindowDimensions();
   const { colors } = useControlTheme();
   const selectedTab = workspace.state.selectedTab;
+  // Remote17: before iPadOS 26 the JS columns put this whole view in the content pane, beside the
+  // sidebar instead of under it, so a footer floating at left: 0 would cover the composer. There
+  // the tabs get their own row under the content, like UIKit's opaque pre-26 tab bar.
+  const legacyPadTabRow = deviceType === "pad" && !NATIVE_WORKSPACE_COLUMNS_SUPPORTED;
   const selectedSlot = workspace.settingsOpen ? -1 : primaryTabs.indexOf(selectedTab);
   const request = {
     selectedScreenKey: selectedSlot === -1 ? "settings" : NATIVE_WORKSPACE_TAB_SLOTS[selectedSlot]!,
@@ -157,7 +162,7 @@ export function WorkspaceNativeTabs(props: {
           );
         })}
       </Tabs.Host>
-      {(deviceType === "pad" ||
+      {legacyPadTabRow ? null : (deviceType === "pad" ||
         compactTabs ||
         (layout.variant === "medium" &&
           !workspaceUsesColumns(selectedTab, workspace.settingsOpen))) &&
@@ -181,9 +186,17 @@ export function WorkspaceNativeTabs(props: {
           <WorkspaceSidebarTabsFooter />
         </View>
       ) : null}
+      {legacyPadTabRow && !props.hidden && !hiddenWithSidebar ? (
+        <View style={{ height: LEGACY_TAB_ROW_HEIGHT }} collapsable={false}>
+          <WorkspaceSidebarTabs />
+        </View>
+      ) : null}
     </View>
   );
 }
+
+/** UITabBar's regular height without a home-indicator inset (iPad 6 and other Home-button iPads). */
+const LEGACY_TAB_ROW_HEIGHT = 50;
 
 /** The workspace tabs at the foot of the sidebar. */
 export function WorkspaceSidebarTabsFooter() {

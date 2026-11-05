@@ -47,6 +47,16 @@ original configuration):
 - `lib/useUiRuntimeMemoryWarningGc.ts`: on an iOS memory warning, also clear the `expo-image`
   in-memory cache.
 
+## iPad layout before iPadOS 26
+
+Found on an iPad 6 (iOS 17.7): before iPadOS 26 the app lays out its columns in JavaScript.
+
+- `features/threads/ThreadNavigationSidebar.tsx`: the sidebar header (title, filter, search) is now
+  in normal layout flow above the thread list instead of floating over it, so the first threads
+  are no longer hidden under the search field.
+- `features/workspace/WorkspaceNativeTabs.ios.tsx`: the Chats / PRs / Usage / Settings bar gets
+  its own row under the content instead of floating over the composer.
+
 ## Privacy
 
 - `features/threads/thread-work-log.tsx`: website icons in agent activity are no longer fetched
