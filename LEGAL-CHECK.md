@@ -4,7 +4,7 @@
 > review written by someone who is not a lawyer. For a binding opinion, consult a qualified
 > professional. The texts quoted here can change; consultation dates are given.
 
-- **Review date:** November 4, 2026
+- **Review date:** November 4, 2026; re-checked November 6, 2026 before the first Release
 - **Repository reviewed:** `pingdotgg/t3code` @ `9e85538535` + changes on branch `ios17-legacy`
 - **Fork:** <https://github.com/Xillo23/remote17-ios17-unofficial>
 
@@ -20,7 +20,7 @@
 | GitHub Terms / AUP | ✅ No ban on publishing compiled binaries of freely licensed software; ⚠️ low residual risk related to jailbreak installation (§6) |
 | App privacy | ✅ No analytics, crash reporting or maintainer server; the only recipient is the user's own T3 Code server (§7) |
 | Circumventing T3 protections/authentication | ✅ None. T3 sign-in and T3 Connect are neither imitated nor bypassed: they are simply unavailable in the fork (§8) |
-| **IPA / Release publication** | ⛔ **Not done.** No legal obstacle found for the fork-mode build, but **the build does not exist yet**: GitHub Actions is disabled on the maintainer's account (technical blocker, §9) |
+| **IPA / Release publication** | ✅ **Allowed for the fork-mode build** and published (§9). Built on Codemagic because GitHub Actions is disabled on the maintainer's account; tested on an iPad 6 with iOS 17.7 |
 
 ## 1. Project license
 
@@ -203,15 +203,22 @@ stated in the README, *Privacy* section.
 
 ## 9. Publication: what was done and what was not
 
-- ✅ Published on the fork: code, workflow, documentation (README, CHANGES, THIRD-PARTY, this
-  file).
-- ⛔ **IPA and GitHub Release: NOT published.** Reason: starting the workflow returns
-  `HTTP 422 "Actions has been disabled for this user"`. The repository's Actions settings are
-  enabled; the block is at the GitHub account level and can only be lifted by the account owner
-  (Actions billing/budget settings) or by GitHub Support. Without a build there is nothing to
-  publish or test.
-- Once a build succeeds, a Release may be created only with the fork-mode IPA and with notes that
-  repeat the unofficial notice, the changes and the removal clause.
+- ✅ Published on the fork: code, workflows (GitHub Actions and `codemagic.yaml`), documentation
+  (README, CHANGES, THIRD-PARTY, this file).
+- ✅ **GitHub Release with the fork-mode IPA** (unsigned and ad-hoc signed, with SHA-256 sums),
+  after this re-check on November 6, 2026:
+  - T3 Terms of Service (effective/last updated July 15, 2026) and Privacy Policy (October 6, 2026)
+    re-read online: unchanged; still no clause against unofficial clients or redistributing
+    builds of the MIT code; trademark and anti-circumvention clauses still respected.
+  - The IPA was scanned: it contains no T3 cloud identifiers (Clerk publishable key, relay URL,
+    EAS project, Apple team ID), no private keys or tokens, and no personal data of the
+    maintainer. Matches for `pk_live_` and `BEGIN PRIVATE KEY` are only library error messages
+    and format checks.
+  - The fork's commits were scanned with gitleaks: no leaks. Commits use a GitHub `noreply`
+    address.
+  - The build ran on Codemagic (GitHub Actions is still disabled on the maintainer's account),
+    from this repository's public `codemagic.yaml`, without secrets or code signing.
+- The Release notes repeat the unofficial notice, the changes and the removal clause.
 - No App Store publication.
 
 ## 10. Residual risks
@@ -224,8 +231,8 @@ stated in the README, *Privacy* section.
 3. **Jailbreak / AppSync Unified:** installing apps not signed by Apple breaches the iOS end-user
    terms and carries security risks; the fork says so ("at your own risk"). Low risk of reports
    to GitHub (§6).
-4. **Real iOS 17 compatibility not verified** on a device: native libraries could crash. No legal
-   impact, but it must be disclosed (done).
+4. **iOS 17 compatibility** was tested only on one device (iPad 6, iOS 17.7.10, palera1n). Other
+   devices may behave differently. No legal impact, but it is disclosed (done).
 5. **T3 Code server:** the user's server may send its own telemetry (configured by the user, not
    by the fork).
 6. **Public fork of the whole monorepo:** it also contains web, desktop, relay and the original
@@ -233,4 +240,4 @@ stated in the README, *Privacy* section.
 
 ---
 
-*Document written on November 4, 2026. It does not constitute legal advice.*
+*Document written on November 4, 2026, updated November 6, 2026. It does not constitute legal advice.*

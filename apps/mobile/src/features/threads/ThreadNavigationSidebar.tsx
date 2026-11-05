@@ -32,6 +32,7 @@ import { CompactBrandTitle } from "../../components/CompactBrandTitle";
 import { Menu } from "../../components/ui/Menu";
 import { SymbolView } from "../../components/ui/AppSymbol";
 import { NativeStackScreenOptions } from "../../native/StackHeader";
+import { NATIVE_WORKSPACE_COLUMNS_SUPPORTED } from "../../native/NativeWorkspaceColumns";
 import { scopedProjectKey, scopedThreadKey } from "../../lib/scopedEntities";
 import { useProjects, useNavigationThreadShells } from "../../state/entities";
 import { useThreadSearch } from "../../state/queries";
@@ -672,6 +673,8 @@ function ThreadNavigationSidebarPane(
     filterIcon,
     filterMenu,
     onOpenSettings: props.onOpenSettings,
+    // Remote17: before iPadOS 26 the tab row under the content already has Settings.
+    showSettings: !(Platform.OS === "ios" && Platform.isPad && !NATIVE_WORKSPACE_COLUMNS_SUPPORTED),
   });
   const listEmpty = (
     <Text

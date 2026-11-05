@@ -46,9 +46,9 @@ The full list is in [CHANGES.md](CHANGES.md).
 | | |
 |---|---|
 | Source changes | Done, type-checked; Expo prebuild verified (all targets iOS 17.0) |
-| CI workflow (`.github/workflows/remote17-ios17-ipa.yml`) | Ready; **not run yet** because GitHub Actions is currently disabled on the maintainer's account |
-| Downloadable IPA / Release | **None published yet.** A Release is created only after a build succeeds and the [legal check](LEGAL-CHECK.md) has no open blockers |
-| Tested on a real iOS 17 device | **Not yet** |
+| Build | Built on Codemagic from [`codemagic.yaml`](codemagic.yaml) (GitHub Actions is disabled on the maintainer's account; the Actions workflow is kept for anyone who can run it) |
+| Downloadable IPA | In [Releases](../../releases) |
+| Tested on a real iOS 17 device | iPad 6 (A10, 2 GB), iOS 17.7.10, palera1n + AppSync Unified / TrollStore Lite. Other devices not tested |
 
 ## Requirements
 
@@ -65,11 +65,13 @@ The full list is in [CHANGES.md](CHANGES.md).
    `https://cydia.akemi.ai/` and install **AppSync Unified**. Install **Filza File Manager**
    from its usual repository. Respring when asked.
 2. Download `Remote17-iOS17-adhoc-signed.ipa` from this repository's
-   [Releases](../../releases) (once one exists) in Safari. Check its SHA-256 against
+   [Releases](../../releases) in Safari. Check its SHA-256 against
    `SHA256SUMS.txt` if you want to be sure the file is intact.
 3. Open the Files app → **Downloads**, long-press the IPA → **Share** → **Filza**, or browse to it
    inside Filza (`/var/mobile/Containers/Shared/AppGroup/.../File Provider Storage/Downloads`).
 4. Tap the IPA in Filza → **Install**. Wait for "Done", then return to the home screen.
+   If the icon does not appear (the app is listed in Settings → General → iPad Storage), run
+   `uicache -a` in a terminal (NewTerm), or install the IPA with **TrollStore Lite** instead.
 5. If the ad-hoc signed variant does not install or launch, try `Remote17-iOS17-unsigned.ipa`
    the same way.
 

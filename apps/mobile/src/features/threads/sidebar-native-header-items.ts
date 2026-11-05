@@ -35,8 +35,10 @@ export function createSidebarHeaderItems(input: {
   readonly filterIcon: string;
   readonly filterMenu: HomeListFilterMenu;
   readonly onOpenSettings: () => void;
+  /** False where the workspace tab row already offers Settings (iPad before iPadOS 26). */
+  readonly showSettings?: boolean;
 }): NativeStackHeaderItem[] {
-  return [
+  const items: NativeStackHeaderItem[] = [
     withNativeGlassHeaderItem({
       type: "menu",
       axisBehavior: "horizontalOnly",
@@ -57,4 +59,5 @@ export function createSidebarHeaderItems(input: {
       onPress: input.onOpenSettings,
     }),
   ];
+  return input.showSettings === false ? items.slice(0, 1) : items;
 }

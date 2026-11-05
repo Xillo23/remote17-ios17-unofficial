@@ -56,6 +56,8 @@ Found on an iPad 6 (iOS 17.7): before iPadOS 26 the app lays out its columns in 
   "automatic" instead of "never" before iOS 26), so the first threads are no longer hidden.
 - `features/workspace/WorkspaceNativeTabs.ios.tsx`: the Chats / PRs / Usage / Settings bar gets
   its own row under the content instead of floating over the composer.
+- `features/threads/sidebar-native-header-items.ts`: no second Settings button in the sidebar
+  header there, since that tab row already has one.
 
 ## Privacy
 
