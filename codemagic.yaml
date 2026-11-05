@@ -38,7 +38,9 @@ workflows:
             const c = require('/tmp/expo-config.json');
             console.log(JSON.stringify({ name: c.name, bundle: c.ios?.bundleIdentifier, team: c.ios?.appleTeamId ?? null,
               domains: c.ios?.associatedDomains, updates: c.updates?.enabled }, null, 2));
-            if (c.extra?.clerk?.publishableKey || c.extra?.relay?.url) { console.error('Cloud config leaked into build'); process.exit(1); }"
+            const str = (v) => typeof v === 'string' && v.trim() !== '';
+            console.log('clerk:', JSON.stringify(c.extra?.clerk), 'relay:', JSON.stringify(c.extra?.relay));
+            if (str(c.extra?.clerk?.publishableKey) || str(c.extra?.relay?.url)) { console.error('Cloud config leaked into build'); process.exit(1); }"
 
       - name: Expo prebuild (iOS)
         script: |
