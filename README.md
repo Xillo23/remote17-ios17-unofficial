@@ -46,9 +46,9 @@ The full list is in [CHANGES.md](CHANGES.md).
 | | |
 |---|---|
 | Source changes | Done, type-checked; Expo prebuild verified (all targets iOS 17.0) |
-| Build | Built on Codemagic from [`codemagic.yaml`](codemagic.yaml) (GitHub Actions is disabled on the maintainer's account; the Actions workflow is kept for anyone who can run it) |
+| Build | Built on Codemagic from [`codemagic.yaml`](codemagic.yaml) (a GitHub Actions workflow with the same steps is also included) |
 | Downloadable IPA | In [Releases](../../releases) |
-| Tested on a real iOS 17 device | iPad 6 (A10, 2 GB), iOS 17.7.10, palera1n + AppSync Unified / TrollStore Lite. Other devices not tested |
+| Tested on a real iOS 17 device | iPad 6 (A10, 2 GB) on iOS 17, jailbroken. Other devices not tested |
 
 ## Requirements
 

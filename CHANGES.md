@@ -49,7 +49,7 @@ original configuration):
 
 ## iPad layout before iPadOS 26
 
-Found on an iPad 6 (iOS 17.7): before iPadOS 26 the app lays out its columns in JavaScript.
+Found on an iPad 6 (iOS 17): before iPadOS 26 the app lays out its columns in JavaScript.
 
 - `features/threads/ThreadNavigationSidebar.tsx`: the sidebar thread list now lets UIKit inset it
   below the translucent navigation bar with the search field (`contentInsetAdjustmentBehavior`

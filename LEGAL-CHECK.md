@@ -20,7 +20,7 @@
 | GitHub Terms / AUP | ✅ No ban on publishing compiled binaries of freely licensed software; ⚠️ low residual risk related to jailbreak installation (§6) |
 | App privacy | ✅ No analytics, crash reporting or maintainer server; the only recipient is the user's own T3 Code server (§7) |
 | Circumventing T3 protections/authentication | ✅ None. T3 sign-in and T3 Connect are neither imitated nor bypassed: they are simply unavailable in the fork (§8) |
-| **IPA / Release publication** | ✅ **Allowed for the fork-mode build** and published (§9). Built on Codemagic because GitHub Actions is disabled on the maintainer's account; tested on an iPad 6 with iOS 17.7 |
+| **IPA / Release publication** | ✅ **Allowed for the fork-mode build** and published (§9). Built on Codemagic from the public `codemagic.yaml`; tested on an iPad 6 with iOS 17 |
 
 ## 1. Project license
 
@@ -216,8 +216,8 @@ stated in the README, *Privacy* section.
     and format checks.
   - The fork's commits were scanned with gitleaks: no leaks. Commits use a GitHub `noreply`
     address.
-  - The build ran on Codemagic (GitHub Actions is still disabled on the maintainer's account),
-    from this repository's public `codemagic.yaml`, without secrets or code signing.
+  - The build ran on Codemagic from this repository's public `codemagic.yaml`, without secrets
+    or code signing.
 - The Release notes repeat the unofficial notice, the changes and the removal clause.
 - No App Store publication.
 
@@ -231,7 +231,7 @@ stated in the README, *Privacy* section.
 3. **Jailbreak / AppSync Unified:** installing apps not signed by Apple breaches the iOS end-user
    terms and carries security risks; the fork says so ("at your own risk"). Low risk of reports
    to GitHub (§6).
-4. **iOS 17 compatibility** was tested only on one device (iPad 6, iOS 17.7.10, palera1n). Other
+4. **iOS 17 compatibility** was tested only on one device (an iPad 6 on iOS 17). Other
    devices may behave differently. No legal impact, but it is disclosed (done).
 5. **T3 Code server:** the user's server may send its own telemetry (configured by the user, not
    by the fork).
